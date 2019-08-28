@@ -15,6 +15,7 @@ public class Avl<T extends Comparable<T>> {
     private void inserirAvl(No<T> no, T valor) {
         if (no.getValor() == null) {
             inserirNo(no, valor);
+            return;
         } else if (no.getValor().compareTo(valor) < 0) {
             inserirAvl(no.getDireito(), valor);
         } else if (no.getValor().compareTo(valor) > 0) {
@@ -22,43 +23,17 @@ public class Avl<T extends Comparable<T>> {
         } else {
             return;
         }
+
+        atualizarAltura(no);
+        decidirTipoDaRotacao(no);
     }
 
     private void inserirNo(No<T> no, T valor) {
         no.setValor(valor);
+        no.setAltura(1);
         no.setDireito(new No<T>());
         no.setEsquerdo(new No<T>());
 
-        atualizarAlturaArvore();
-        buscarDesbalanceamentoNaArvore();
-    }
-
-    private void buscarDesbalanceamentoNaArvore() {
-        encontrarNoDesbalanceado(this.raiz);
-    }
-
-    private void encontrarNoDesbalanceado(No<T> no) {
-        if (no.getEsquerdo().getValor() == null) return;
-        if (no.getDireito().getValor() == null) return;
-
-        if (!isNoBalanceado(calcularFatorDeBalanceamento(no))) {
-            decidirTipoDaRotacao(no);
-        }
-        atualizarAlturaPosOrdem(no.getEsquerdo());
-        atualizarAlturaPosOrdem(no.getDireito());
-    }
-
-    private void atualizarAlturaArvore() {
-        atualizarAlturaPosOrdem(this.raiz);
-    }
-
-    private void atualizarAlturaPosOrdem(No<T> no) {
-        if (no.getEsquerdo().getValor() == null) return;
-        if (no.getDireito().getValor() == null) return;
-
-        atualizarAlturaPosOrdem(no.getEsquerdo());
-        atualizarAlturaPosOrdem(no.getDireito());
-        atualizarAltura(no);
     }
 
     private void decidirTipoDaRotacao(No<T> no) {
@@ -153,8 +128,8 @@ public class Avl<T extends Comparable<T>> {
         if (no.getValor() == null) {
             return 0;
         } else {
-            int alturaSubArvoreEsquerda = altura(no.getEsquerdo());
-            int alturaSubArvoreDireita = altura(no.getDireito());
+            int alturaSubArvoreEsquerda = no.getEsquerdo().getAltura();
+            int alturaSubArvoreDireita = no.getDireito().getAltura();
 
             if (alturaSubArvoreEsquerda < alturaSubArvoreDireita) {
                 return alturaSubArvoreDireita + 1;
@@ -174,7 +149,7 @@ public class Avl<T extends Comparable<T>> {
         if (no.getDireito() == null) return;
 
         imprimeEmOrdem(no.getEsquerdo());
-        System.out.print(no.getValor() + " ");
+        System.out.printf("[%d] Filhos : E=%d, D=%d\n", no.getValor(), no.getEsquerdo().getValor(), no.getDireito().getValor());
         imprimeEmOrdem(no.getDireito());
     }
 
@@ -203,15 +178,17 @@ public class Avl<T extends Comparable<T>> {
                 break;
 
             case 2:
-                No<T> subArvoreDaDireita = menorDireita(resultadoDaBusca);
-                T removido = subArvoreDaDireita.getValor();
-                remover(subArvoreDaDireita.getValor());
+                No<T> subArvoreEsquerda = buscarMaiorNoSubArvoreEsquerda(resultadoDaBusca);
+                T removido = subArvoreEsquerda.getValor();
+                remover(subArvoreEsquerda.getValor());
                 resultadoDaBusca.setValor(removido);
+                atualizarAltura(resultadoDaBusca);
+                if (!isNoBalanceado(calcularFatorDeBalanceamento(resultadoDaBusca))){
+                    decidirTipoDaRotacao(resultadoDaBusca);
+                }
                 break;
         }
 
-        atualizarAlturaArvore();
-        buscarDesbalanceamentoNaArvore();
     }
 
     private int numeroDeFilhos(No<T> ponteiro) {
@@ -225,20 +202,30 @@ public class Avl<T extends Comparable<T>> {
         return aux;
     }
 
-    private No<T> menorDireita(No<T> ponteiro) {
-        ponteiro = ponteiro.getDireito();
+    private No<T> buscarMenorNoSubArvoreDireita(No<T> no) {
+        no = no.getDireito();
 
-        while (ponteiro.getEsquerdo().getValor() != null) {
-            ponteiro = ponteiro.getEsquerdo();
+        while (no.getEsquerdo().getValor() != null) {
+            no = no.getEsquerdo();
         }
 
-        return ponteiro;
+        return no;
+    }
+
+    private No<T> buscarMaiorNoSubArvoreEsquerda(No<T> no) {
+        no = no.getEsquerdo();
+        while (no.getDireito().getValor() != null) {
+            no = no.getDireito();
+        }
+
+        return no;
     }
 
     private void mataNo(No<T> ponteiro) {
         ponteiro.setValor(null);
         ponteiro.setDireito(null);
         ponteiro.setEsquerdo(null);
+        ponteiro.setAltura(0);
     }
 
     private No<T> buscarNo(T valor) {

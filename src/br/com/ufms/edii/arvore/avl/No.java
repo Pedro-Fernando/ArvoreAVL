@@ -19,6 +19,7 @@ public class No<T extends Comparable<T>> {
         this.valor = valor;
         this.direito = new No<T>();
         this.esquerdo = new No<T>();
+        this.altura = 1;
     }
 
     public T getValor() {
