@@ -178,10 +178,11 @@ public class Avl<T extends Comparable<T>> {
                 break;
 
             case 2:
-                No<T> subArvoreEsquerda = buscarMaiorNoSubArvoreEsquerda(resultadoDaBusca);
-                T removido = subArvoreEsquerda.getValor();
-                remover(subArvoreEsquerda.getValor());
+                No<T> menorNoSubArvoreDireita = buscarMenorNoSubArvoreDireita(resultadoDaBusca);
+                T removido = menorNoSubArvoreDireita.getValor();
+                remover(menorNoSubArvoreDireita.getValor());
                 resultadoDaBusca.setValor(removido);
+
                 atualizarAltura(resultadoDaBusca);
                 if (!isNoBalanceado(calcularFatorDeBalanceamento(resultadoDaBusca))){
                     decidirTipoDaRotacao(resultadoDaBusca);
